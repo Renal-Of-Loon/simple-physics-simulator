@@ -1,0 +1,1 @@
+Initial reference: https://scipython.com/blog/two-dimensional-collisions/

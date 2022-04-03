@@ -1,17 +1,17 @@
 import sys
 import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib import animation
 from typing import Union, Sequence
 from collections.abc import Iterable
 
 from structures.BaseParticle import BaseParticle
-
-
-def particle_overlap(particle1: BaseParticle, particle2: BaseParticle) -> bool:
-    return np.hypot(*(particle1.position - particle2.position)) < particle1.radius + particle2.radius
+from controllers.PhysicsController import PhysicsController
 
 
 class SimulationController:
-    def __init__(self, world_size: float) -> None:
+    def __init__(self, world_size: float, physics_type: str) -> None:
         """
         Initialize the controller a square world of sides=world_size
         :param world_size: Length of the square world
@@ -24,6 +24,8 @@ class SimulationController:
         self.MAX_ITERATIONS = 20
         # Set an epsilon to ensure non-zero but almost 0 in some cases
         self.epsilon = sys.float_info.epsilon
+
+        self.physics = PhysicsController(physics_type)
 
     @staticmethod
     def generate_world(world_size: float) -> np.ndarray:
@@ -47,6 +49,7 @@ class SimulationController:
         for i, rad in enumerate(radius):
             # Currently, all positions are generated at random
             while True:
+                overlaps = False
                 # Dumb way to get min and max
                 # Really just avoiding hardcoding it atm
                 minimum, maximum = self.world
@@ -56,18 +59,76 @@ class SimulationController:
 
                 # Generate speed between 0.1 and 1.0 m/s
                 # Generate direction between [0, 2pi)
-                vr = 0.1 * np.random.random() + self.epsilon
+                vr = 0.2 * np.random.random() + self.epsilon
                 vphi = 2 * np.pi * np.random.random()
 
                 # Convert to cartesian
                 vx, vy = vr * np.array([np.cos(vphi), np.sin(vphi)])
 
-                particle = BaseParticle(x, y, vx, vy, rad)
+                particle = BaseParticle(x, y, vx, vy, rad, mass=rad)
+                #print(particle.position)
 
                 for p in self.particles:
-                    if particle_overlap(particle, p):
+                    if self.physics.is_overlap(particle, p):
+                        overlaps = True
                         break
 
-                self.particles.append(particle)
-                break
+                if not overlaps:
+                    self.particles.append(particle)
+                    break
 
+    def step_forward(self, dt: float) -> None:
+        """
+        Method to describe the moving forward by increment of time
+        :param dt: time increment (seconds)
+        :return: None
+        """
+        for i, particle in enumerate(self.particles):
+            print(f"Moving particle {i}")
+            particle.move(dt)
+
+        self.physics.handle_possible_collisions(self.particles)
+
+    def init(self):
+        """Initialize the Matplotlib animation."""
+
+        self.circles = []
+        for particle in self.particles:
+            self.circles.append(particle.draw(self.ax))
+        return self.circles
+
+    def advance_animation(self, dt):
+        """Advance the animation by dt, returning the updated Circles list."""
+
+        for i, p in enumerate(self.particles):
+            #print(f"Particle {i}:\nPosition: {p.position}\nVelocity: {p.velocity}")
+            #print(f"Moving particle {i}")
+            p.move(dt)
+            self.circles[i].center = p.position
+
+        self.physics.handle_possible_collisions(self.particles)
+        return self.circles
+
+    def animate(self, i):
+        """The function passed to Matplotlib's FuncAnimation routine."""
+
+        self.advance_animation(0.1)
+        return self.circles
+
+    def do_animation(self, save=False):
+        fig, self.ax = plt.subplots()
+        for s in ['top', 'bottom', 'left', 'right']:
+            self.ax.spines[s].set_linewidth(2)
+        self.ax.set_aspect('equal', 'box')
+        self.ax.set_xlim(0, 1)
+        self.ax.set_ylim(0, 1)
+        self.ax.xaxis.set_ticks([])
+        self.ax.yaxis.set_ticks([])
+
+        anim = animation.FuncAnimation(fig, self.animate, init_func=self.init,
+                                       frames=800, interval=2, blit=True)
+        if save:
+            writer = animation.PillowWriter(fps=100, bitrate=1800)
+            anim.save('animations/collision.gif', writer=writer)
+        else:
+            plt.show()

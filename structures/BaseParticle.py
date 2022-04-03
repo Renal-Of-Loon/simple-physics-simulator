@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Sequence, Union
+import matplotlib as mpl
 
 
 class BaseParticle:
@@ -7,7 +8,7 @@ class BaseParticle:
     Class representing the base of any particle
     """
 
-    def __init__(self, x, y, vx, vy, radius=0.01, mass=1):
+    def __init__(self, x, y, vx, vy, radius=0.01, mass=1, styles=None):
         """
         Init for BaseParticle
         :param x: relative position in x (meters)
@@ -24,6 +25,10 @@ class BaseParticle:
         self._radius = radius
 
         self.mass = mass
+        if styles is None:
+            self.styles = {'color': np.random.rand(3,), 'edgecolor': None}
+        else:
+            self.styles = styles
 
     # Define useful getter and setters
     @property
@@ -63,7 +68,7 @@ class BaseParticle:
 
     @property
     def vy(self) -> float:
-        return self._velocity[0]
+        return self._velocity[1]
 
     @vy.setter
     def vy(self, value: float) -> None:
@@ -96,22 +101,39 @@ class BaseParticle:
         """
 
         # New position = velocity * time interval
-        self._position = self._velocity * dt
+        self._position += self._velocity * dt
+        #print(self.velocity, dt)
+        #print(f"After velocity move: {self.position}")
 
         # For now let's deal with wall physics here
         # Walls are assumed to be at 0m and 1m in both x and y
         if self.x - self.radius < 0:
             # If we passed the x = 0 wall, bounce back
             self.x = self.radius
-            self.vx = -self.vx
+            self.vx = -1. * self.vx
         if self.x + self.radius > 1:
             # If we passed the x = 1 wall...
-            self.x = 1 - self.radius
-            self.vx = -self.vx
+            self.x = 1. - self.radius
+            self.vx = -1. * self.vx
 
-        if self.y - self.radius < 0:
+        if self.y - self.radius <= 0:
+            #print(f"Reached floor, adjusting\nFrom: Position: {self.position}; Velocity: {self.velocity}")
+            #print(self.vy)
+            #print(-1. * self.vy)
             self.y = self.radius
-            self.vy = -self.vy
-        if self.y + self.radius > 1:
-            self.y = 1 - self.radius
-            self.vy = -self.vy
+            self.vy = -1. * self.vy
+            #print(f"To: Position: {self.position}; Velocity: {self.velocity}")
+        if self.y + self.radius >= 1:
+            #print(f"Reached ceil, adjusting\nFrom: Position: {self.position}; Velocity: {self.velocity}")
+            self.y = 1. - self.radius
+            self.vy = -1. * self.vy
+            #print(self.velocity, self.vy)
+            #print(-1. * self.vy)
+            #print(f"To: Position: {self.position}; Velocity: {self.velocity}")
+
+        #print(f"After boundary move: {self.position}")
+
+    def draw(self, ax):
+        circle = mpl.patches.Circle(xy=self.position, radius=self.radius, **self.styles)
+        ax.add_patch(circle)
+        return circle

@@ -1,8 +1,6 @@
 import numpy as np
 from itertools import combinations
 
-from .SimulationController import particle_overlap
-
 
 class PhysicsController:
     """
@@ -11,12 +9,16 @@ class PhysicsController:
     def __init__(self, physics_type: str):
         self.physics = physics_type
 
-    def check_collisions(self, particles: list):
+    @staticmethod
+    def is_overlap(particle1, particle2) -> bool:
+        return np.hypot(*(particle1.position - particle2.position)) < particle1.radius + particle2.radius
+
+    def handle_possible_collisions(self, particles: list):
         # Very slow and inefficient way of finding particle overlaps
         particle_pairs = combinations(range(len(particles)), 2)
 
         for i, j in particle_pairs:
-            if particle_overlap(particles[i], particles[j]):
+            if self.is_overlap(particles[i], particles[j]):
                 self.handle_particle_collisions(particles[i], particles[j])
 
     def handle_particle_collisions(self, particle1, particle2):
