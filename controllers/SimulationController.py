@@ -101,10 +101,15 @@ class SimulationController:
         """Advance the animation by dt, returning the updated Circles list."""
 
         for i, p in enumerate(self.particles):
-            #print(f"Particle {i}:\nPosition: {p.position}\nVelocity: {p.velocity}")
-            #print(f"Moving particle {i}")
+            #if i == 0:
+            #    print(f"Particle {i}:\nPosition: {p.position}\nVelocity: {p.velocity}")
+
             p.move(dt)
             self.circles[i].center = p.position
+            #if len(self.ax.texts) > 1:
+            #    del self.ax.texts[1]
+            #    del self.ax.texts[0]
+            #self.ax.text(p.x, p.y, str(p.vy))
 
         self.physics.handle_possible_collisions(self.particles)
         return self.circles
@@ -115,7 +120,7 @@ class SimulationController:
         self.advance_animation(0.1)
         return self.circles
 
-    def do_animation(self, save=False):
+    def do_animation(self, frames=800, save=False):
         fig, self.ax = plt.subplots()
         for s in ['top', 'bottom', 'left', 'right']:
             self.ax.spines[s].set_linewidth(2)
@@ -126,7 +131,7 @@ class SimulationController:
         self.ax.yaxis.set_ticks([])
 
         anim = animation.FuncAnimation(fig, self.animate, init_func=self.init,
-                                       frames=800, interval=2, blit=True)
+                                       frames=frames, interval=2, blit=True)
         if save:
             writer = animation.PillowWriter(fps=100, bitrate=1800)
             anim.save('animations/collision.gif', writer=writer)

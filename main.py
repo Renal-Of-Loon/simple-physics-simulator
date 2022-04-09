@@ -1,5 +1,6 @@
 from controllers.SimulationController import SimulationController
 
+
 import numpy as np
 
 # Press the green button in the gutter to run the script.
@@ -15,9 +16,13 @@ if __name__ == '__main__':
 
     #print(p1f.velocity, p2f.velocity, p1f.color)
 
-    nparticles = 10
+    nparticles = 5
     radii = np.random.random(nparticles) * 0.03
     sim = SimulationController(1.0, 'SimpleMechanics')
+    #world = create_square(borders='wood', fill='vacuum')
+    #particles = generate_random_particles(nparticles, radii)
+    #world.add_elements(particles)
+    #sim.make_world(world)
     sim.initialize_particles(nparticles, radii)
 
-    sim.do_animation(save=True)
+    sim.do_animation(frames=200, save=True)

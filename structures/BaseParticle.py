@@ -2,8 +2,10 @@ import numpy as np
 from typing import Sequence, Union
 import matplotlib as mpl
 
+from .BaseConstruct import BaseConstruct
 
-class BaseParticle:
+
+class BaseParticle(BaseConstruct):
     """
     Class representing the base of any particle
     """
@@ -19,45 +21,17 @@ class BaseParticle:
         :parma mass :mass of particle (kg)
         """
 
+        # Init position and styles
+        super().__init__(x, y, None, styles)
+
         # Set basic position, velocity, and radius values
-        self._position = np.array((x, y))
         self._velocity = np.array((vx, vy))
         self._radius = radius
 
         self.mass = mass
-        if styles is None:
-            self.styles = {'color': np.random.rand(3,), 'edgecolor': None}
-        else:
-            self.styles = styles
+        self.energy = self.compute_energy()
 
     # Define useful getter and setters
-    @property
-    def x(self) -> float:
-        return self._position[0]
-
-    @x.setter
-    def x(self, value: float) -> None:
-        self._position[0] = value
-
-    @property
-    def y(self) -> float:
-        return self._position[1]
-
-    @y.setter
-    def y(self, value: float) -> None:
-        self._position[1] = value
-
-    @property
-    def position(self) -> np.ndarray:
-        return self._position
-
-    @position.setter
-    def position(self, value: Union[Sequence[float], np.ndarray]) -> None:
-        assert isinstance(value, Sequence) or isinstance(value, np.ndarray)
-        assert len(value) == 2
-
-        self._position = value
-
     @property
     def vx(self) -> float:
         return self._velocity[0]
@@ -86,6 +60,13 @@ class BaseParticle:
         self._velocity = value
 
     @property
+    def velocity_magnitude(self) -> float:
+        # Note that np.linalg is a bit slower than say
+        # np.sqrt((v * v).sum(axis=1)) but safer
+        # Consider changing to this if needed
+        return np.sqrt((self.velocity * self.velocity).sum(axis=0))
+
+    @property
     def radius(self) -> float:
         return self._radius
 
@@ -94,6 +75,15 @@ class BaseParticle:
         assert value > 0.
         self._radius = value
 
+    def compute_energy(self) -> float:
+        # E_k = 1/2 * m * v^2
+        # E_p = m * g * h
+
+        kinetic = 0.5 * self.mass * (self.velocity_magnitude ** 2)
+        potential = self.mass * self.g * self.y
+
+        return kinetic + potential
+
     def move(self, dt: float) -> None:
         """
         Method governing particle displacement
@@ -101,7 +91,8 @@ class BaseParticle:
         """
 
         # New position = velocity * time interval
-        self._position += self._velocity * dt
+        self._position += self._velocity * dt + 0.5 * self.g * dt**2
+
         #print(self.velocity, dt)
         #print(f"After velocity move: {self.position}")
 
@@ -131,9 +122,17 @@ class BaseParticle:
             #print(-1. * self.vy)
             #print(f"To: Position: {self.position}; Velocity: {self.velocity}")
 
-        #print(f"After boundary move: {self.position}")
+        # We adjust velocity after boundary displacement to avoid increasing energy in the system magically
+        # If not we are making the "first" increment after impact bigger than before impact
+        # Velocity is update when gravity is involved
+        self._velocity += self.g * dt
+
+        self.compute_energy()
 
     def draw(self, ax):
         circle = mpl.patches.Circle(xy=self.position, radius=self.radius, **self.styles)
         ax.add_patch(circle)
+
+        #ax.text(self.x, self.y, str(self.vy))
+
         return circle
