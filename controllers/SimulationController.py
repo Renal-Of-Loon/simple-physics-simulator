@@ -65,7 +65,7 @@ class SimulationController:
                 # Convert to cartesian
                 vx, vy = vr * np.array([np.cos(vphi), np.sin(vphi)])
 
-                particle = BaseParticle(x, y, vx, vy, rad, mass=rad)
+                particle = BaseParticle((x, y), (vx, vy), rad, mass=rad)
                 #print(particle.position)
 
                 for p in self.particles:

@@ -10,7 +10,7 @@ class BaseParticle(BaseConstruct):
     Class representing the base of any particle
     """
 
-    def __init__(self, x, y, vx, vy, radius=0.01, mass=1, styles=None):
+    def __init__(self, position, velocity, radius=0.01, mass=1, styles=None):
         """
         Init for BaseParticle
         :param x: relative position in x (meters)
@@ -22,50 +22,15 @@ class BaseParticle(BaseConstruct):
         """
 
         # Init position and styles
-        super().__init__(x, y, None, styles)
+        super().__init__(position, velocity, None, styles)
 
         # Set basic position, velocity, and radius values
-        self._velocity = np.array((vx, vy))
         self._radius = radius
 
         self.mass = mass
         self.energy = self.compute_energy()
 
     # Define useful getter and setters
-    @property
-    def vx(self) -> float:
-        return self._velocity[0]
-
-    @vx.setter
-    def vx(self, value: float) -> None:
-        self._velocity[0] = value
-
-    @property
-    def vy(self) -> float:
-        return self._velocity[1]
-
-    @vy.setter
-    def vy(self, value: float) -> None:
-        self._velocity[1] = value
-
-    @property
-    def velocity(self) -> np.ndarray:
-        return self._velocity
-
-    @velocity.setter
-    def velocity(self, value: Union[Sequence[float], np.ndarray]) -> None:
-        assert isinstance(value, Sequence) or isinstance(value, np.ndarray)
-        assert len(value) == 2
-
-        self._velocity = value
-
-    @property
-    def velocity_magnitude(self) -> float:
-        # Note that np.linalg is a bit slower than say
-        # np.sqrt((v * v).sum(axis=1)) but safer
-        # Consider changing to this if needed
-        return np.sqrt((self.velocity * self.velocity).sum(axis=0))
-
     @property
     def radius(self) -> float:
         return self._radius
