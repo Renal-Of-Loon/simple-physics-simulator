@@ -1,5 +1,6 @@
 import numpy as np
 from .BaseConstruct import BaseConstruct
+from util.ParticleGeneration import generate_particles_in_box
 
 
 class Box(BaseConstruct):
@@ -22,6 +23,8 @@ class Box(BaseConstruct):
         self.fill = fill
         self.border_material = border_material
 
+        self.generate_box_particles = generate_particles_in_box
+
     @property
     def hlx(self) -> float:
         return self._half_lengths[0]
@@ -39,3 +42,7 @@ class Box(BaseConstruct):
     def hly(self, value: float) -> None:
         assert value >= 0.
         self._half_lengths[1] = value
+
+    @property
+    def half_lengths(self):
+        return self._half_lengths

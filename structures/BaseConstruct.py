@@ -10,11 +10,12 @@ class BaseConstruct:
 
     def __init__(self, position, velocity, parent, styles=None):
         """
-        Init for BaseParticle
-        :param x: relative position in x (meters)
-        :param y: relative position in y (meters)
+        Init for base construct
+        :param position: Sequence of floats definining position in meters
+        :param velocity: Sequence of floats definining velocity in meters/seconds
+        :param parent: Parent object
+        :param styles: styles dictionary
         """
-
         # Set basic position, velocity
         self._position = np.array(position)
         self._velocity = np.array(velocity)
@@ -22,7 +23,8 @@ class BaseConstruct:
         self._gravity_acceleration = np.array((0, -0.1 * constants.g))  # m/s^2
 
         self.parent = parent
-        self.children = {}
+        self.children = []
+        self.particles = []
 
         if styles is None:
             self.styles = {'color': np.random.rand(3,), 'edgecolor': None}

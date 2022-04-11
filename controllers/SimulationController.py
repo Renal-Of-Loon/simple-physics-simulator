@@ -11,13 +11,13 @@ from controllers.PhysicsController import PhysicsController
 
 
 class SimulationController:
-    def __init__(self, world_size: float, physics_type: str) -> None:
+    def __init__(self, physics_type: str) -> None:
         """
         Initialize the controller a square world of sides=world_size
         :param world_size: Length of the square world
         """
 
-        self.world = self.generate_world(world_size)
+        self.world = None
         self.number_particles = None
         self.particles = []
 
@@ -27,10 +27,8 @@ class SimulationController:
 
         self.physics = PhysicsController(physics_type)
 
-    @staticmethod
-    def generate_world(world_size: float) -> np.ndarray:
-        # Currently, a useless function
-        return np.array([0, world_size])
+    def generate_world(self, world):
+        self.world = world
 
     def initialize_particles(self, number_particles: int, radius: Union[float, Sequence[float], np.ndarray] = 0.01):
         # TODO: Add a positions option
@@ -85,7 +83,8 @@ class SimulationController:
         """
         for i, particle in enumerate(self.particles):
             print(f"Moving particle {i}")
-            particle.move(dt)
+            self.particles[i] = self.physics.iterate_position(particle, dt)
+            #particle.move(dt)
 
         self.physics.handle_possible_collisions(self.particles)
 
@@ -100,11 +99,14 @@ class SimulationController:
     def advance_animation(self, dt):
         """Advance the animation by dt, returning the updated Circles list."""
 
+        #self.physics.itterate_movements(self.world)
+
         for i, p in enumerate(self.particles):
             #if i == 0:
             #    print(f"Particle {i}:\nPosition: {p.position}\nVelocity: {p.velocity}")
 
-            p.move(dt)
+            #p.move(dt)
+            self.physics.iterate_position(p, dt)
             self.circles[i].center = p.position
             #if len(self.ax.texts) > 1:
             #    del self.ax.texts[1]

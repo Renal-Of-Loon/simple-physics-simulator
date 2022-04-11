@@ -2,9 +2,10 @@ import numpy as np
 from typing import Sequence, Union
 import matplotlib as mpl
 
+#from ..controllers.PhysicsController import PhysicsController
 from .BaseConstruct import BaseConstruct
 
-
+POSITION_PRECISION = 1e-4
 class BaseParticle(BaseConstruct):
     """
     Class representing the base of any particle
@@ -54,7 +55,9 @@ class BaseParticle(BaseConstruct):
         Method governing particle displacement
         :param dt: variation in time (seconds)
         """
-
+        #PhysicsController.iterate_position(self, dt)
+        """
+        initial_position = self.position
         # New position = velocity * time interval
         self._position += self._velocity * dt + 0.5 * self.g * dt**2
 
@@ -90,9 +93,12 @@ class BaseParticle(BaseConstruct):
         # We adjust velocity after boundary displacement to avoid increasing energy in the system magically
         # If not we are making the "first" increment after impact bigger than before impact
         # Velocity is update when gravity is involved
+        #if np.any(np.abs(initial_position - self.position) < POSITION_PRECISION):
+            # Acceleration only matters if we've actually *moved*
         self._velocity += self.g * dt
 
         self.compute_energy()
+        """
 
     def draw(self, ax):
         circle = mpl.patches.Circle(xy=self.position, radius=self.radius, **self.styles)
