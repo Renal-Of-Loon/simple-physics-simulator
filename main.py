@@ -10,7 +10,6 @@ if __name__ == '__main__':
     radii = np.random.random(nparticles) * 0.03
     sim = SimulationController('SimpleMechanics')
     world = Box((0., 0.), (0., 0.), (0.5, 0.5), border_material='wood', fill='vacuum')
-    #particles = generate_random_particles(nparticles, radii)
     #world.add_elements(particles)
     #sim.make_world(world)
     #sim.initialize_particles(nparticles, radii)

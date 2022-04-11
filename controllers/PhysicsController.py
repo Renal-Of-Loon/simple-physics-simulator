@@ -1,6 +1,8 @@
 import numpy as np
 from itertools import combinations
 
+from util.Overlaps import is_radial_overlap
+
 
 class PhysicsController:
     """
@@ -9,16 +11,23 @@ class PhysicsController:
     def __init__(self, physics_type: str):
         self.physics = physics_type
 
-    @staticmethod
-    def is_overlap(particle1, particle2) -> bool:
-        return np.hypot(*(particle1.position - particle2.position)) < particle1.radius + particle2.radius
+    def increment_construct(self, construct):
+
+        # TODO: Check if static, if not move & check collisions
+
+        if len(construct.children) > 0:
+            for child_construct in construct.children:
+                self.increment_construct(child_construct)
+
+        if len(construct.particles) > 0:
+            self.increment_particles(construct)
 
     def handle_possible_collisions(self, particles: list):
         # Very slow and inefficient way of finding particle overlaps
         particle_pairs = combinations(range(len(particles)), 2)
 
         for i, j in particle_pairs:
-            if self.is_overlap(particles[i], particles[j]):
+            if is_radial_overlap(particles[i], particles[j]):
                 self.handle_particle_collisions(particles[i], particles[j])
 
     def handle_particle_collisions(self, particle1, particle2):
@@ -60,7 +69,6 @@ class PhysicsController:
             initial_position = entity.position
             # New position = velocity * time interval
             entity.position += entity.velocity * dt + 0.5 * entity.g * dt ** 2
-
 
             # print(self.velocity, dt)
             # print(f"After velocity move: {self.position}")

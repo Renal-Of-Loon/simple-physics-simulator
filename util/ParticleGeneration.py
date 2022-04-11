@@ -3,7 +3,6 @@ from typing import Union, Sequence
 from collections.abc import Iterable
 
 from structures.BaseParticle import BaseParticle
-#from structures.Box import Box
 from .Overlaps import is_radial_overlap
 
 
