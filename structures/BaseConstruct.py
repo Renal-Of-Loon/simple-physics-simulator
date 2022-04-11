@@ -3,6 +3,20 @@ from scipy import constants
 from typing import Sequence, Union
 
 
+def cart2pol(coords):
+    x, y = coords
+    rho = np.sqrt(x**2 + y**2)
+    phi = np.arctan2(y, x)
+    return rho, phi
+
+
+def pol2cart(coords):
+    rho, phi = coords
+    x = rho * np.cos(phi)
+    y = rho * np.sin(phi)
+    return x, y
+
+
 class BaseConstruct:
     """
         Class representing the base of any construct/object
@@ -19,6 +33,8 @@ class BaseConstruct:
         # Set basic position, velocity
         self._position = np.array(position)
         self._velocity = np.array(velocity)
+
+        self._radial_velocity = cart2pol(self._velocity)
 
         self._gravity_acceleration = np.array((0, -0.1 * constants.g))  # m/s^2
 
@@ -85,6 +101,19 @@ class BaseConstruct:
         assert len(value) == 2
 
         self._velocity = value
+        self._radial_velocity = cart2pol(value)
+
+    @property
+    def radial_velocity(self):
+        return self._velocity
+
+    @radial_velocity.setter
+    def radial_velocity(self, value: Union[Sequence[float], np.ndarray]) -> None:
+        assert isinstance(value, Sequence) or isinstance(value, np.ndarray)
+        assert len(value) == 2
+
+        self._radial_velocity = value
+        self._velocity = pol2cart(value)
 
     @property
     def velocity_magnitude(self) -> float:

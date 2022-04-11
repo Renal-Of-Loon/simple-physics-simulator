@@ -31,17 +31,34 @@ class PhysicsController:
                 self.handle_particle_collisions(particles[i], particles[j])
 
     def handle_particle_collisions(self, particle1, particle2):
+        # for shorter equation writting
+        x1 = particle1.position
+        x2 = particle2.position
+        v1 = particle1.velocity
+        v2 = particle2.velocity
+        m1 = particle1.mass
+        m2 = particle2.mass
+
+        def magnitude(vector):
+            return np.sqrt(vector.dot(vector))
 
         if self.physics == 'SimpleMechanics':
             # Use simple elastic collisions
             # Use center of mass reference frame
             # v_{cm} = (m_1*v1 + m_2*v_2) / (m1 + m2)
             # v_{n,f} = -v_n + 2*v_{cm}
+            """
             velocity_center_mass = (particle1.mass * particle1.velocity + particle2.mass * particle2.velocity) \
                                    / (particle1.mass + particle2.mass)
 
             particle1.velocity = -1 * particle1.velocity + 2 * velocity_center_mass
             particle2.velocity = -1 * particle2.velocity + 2 * velocity_center_mass
+            """
+
+            particle1.velocity = v1 - ((2 * m2) / (m1 + m2)) * (
+                        np.dot((v1 - v2), (x1 - x2)) / (magnitude(x1 - x2) ** 2)) * (x1 - x2)
+            particle2.velocity = v2 - ((2 * m1) / (m2 + m1)) * (
+                        np.dot((v2 - v1), (x2 - x1)) / (magnitude(x2 - x1) ** 2)) * (x2 - x1)
 
             # Now move them *out* of each other
             """
