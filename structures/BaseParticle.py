@@ -2,10 +2,12 @@ import numpy as np
 from typing import Sequence, Union
 import matplotlib as mpl
 
-#from ..controllers.PhysicsController import PhysicsController
 from .BaseConstruct import BaseConstruct
+from util.Maths import magnitude
 
 POSITION_PRECISION = 1e-4
+
+
 class BaseParticle(BaseConstruct):
     """
     Class representing the base of any particle
@@ -29,7 +31,7 @@ class BaseParticle(BaseConstruct):
         self._radius = radius
 
         self.mass = mass
-        self.energy = self.compute_energy()
+        self.energy = 0.0
 
     # Define useful getter and setters
     @property
@@ -40,65 +42,6 @@ class BaseParticle(BaseConstruct):
     def radius(self, value: float) -> None:
         assert value > 0.
         self._radius = value
-
-    def compute_energy(self) -> float:
-        # E_k = 1/2 * m * v^2
-        # E_p = m * g * h
-
-        kinetic = 0.5 * self.mass * (self.velocity_magnitude ** 2)
-        potential = self.mass * self.g * self.y
-
-        return kinetic + potential
-
-    def move(self, dt: float) -> None:
-        """
-        Method governing particle displacement
-        :param dt: variation in time (seconds)
-        """
-        #PhysicsController.iterate_position(self, dt)
-        """
-        initial_position = self.position
-        # New position = velocity * time interval
-        self._position += self._velocity * dt + 0.5 * self.g * dt**2
-
-        #print(self.velocity, dt)
-        #print(f"After velocity move: {self.position}")
-
-        # For now let's deal with wall physics here
-        # Walls are assumed to be at 0m and 1m in both x and y
-        if self.x - self.radius < 0:
-            # If we passed the x = 0 wall, bounce back
-            self.x = self.radius
-            self.vx = -1. * self.vx
-        if self.x + self.radius > 1:
-            # If we passed the x = 1 wall...
-            self.x = 1. - self.radius
-            self.vx = -1. * self.vx
-
-        if self.y - self.radius <= 0:
-            #print(f"Reached floor, adjusting\nFrom: Position: {self.position}; Velocity: {self.velocity}")
-            #print(self.vy)
-            #print(-1. * self.vy)
-            self.y = self.radius
-            self.vy = -1. * self.vy
-            #print(f"To: Position: {self.position}; Velocity: {self.velocity}")
-        if self.y + self.radius >= 1:
-            #print(f"Reached ceil, adjusting\nFrom: Position: {self.position}; Velocity: {self.velocity}")
-            self.y = 1. - self.radius
-            self.vy = -1. * self.vy
-            #print(self.velocity, self.vy)
-            #print(-1. * self.vy)
-            #print(f"To: Position: {self.position}; Velocity: {self.velocity}")
-
-        # We adjust velocity after boundary displacement to avoid increasing energy in the system magically
-        # If not we are making the "first" increment after impact bigger than before impact
-        # Velocity is update when gravity is involved
-        #if np.any(np.abs(initial_position - self.position) < POSITION_PRECISION):
-            # Acceleration only matters if we've actually *moved*
-        self._velocity += self.g * dt
-
-        self.compute_energy()
-        """
 
     def draw(self, ax):
         circle = mpl.patches.Circle(xy=self.position, radius=self.radius, **self.styles)

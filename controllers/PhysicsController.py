@@ -3,6 +3,7 @@ from itertools import combinations
 from scipy import constants
 
 from util.Overlaps import is_radial_overlap
+from util.Maths import magnitude
 
 
 class PhysicsController:
@@ -48,9 +49,6 @@ class PhysicsController:
         v2 = particle2.velocity
         m1 = particle1.mass
         m2 = particle2.mass
-
-        def magnitude(vector):
-            return np.sqrt(vector.dot(vector))
 
         if self.physics == 'SimpleMechanics':
             # Use simple elastic collisions
@@ -133,6 +131,15 @@ class PhysicsController:
             # Acceleration only matters if we've actually *moved*
             entity.velocity += entity.g * dt
 
-            entity.compute_energy()
+            entity.energy = self.compute_energy(entity)
 
             return entity
+
+    def compute_energy(self, entity):
+        # E_k = 1/2 * m * v^2
+        # E_p = m * g * h
+
+        kinetic = 0.5 * entity.mass * (magnitude(entity.velocity) ** 2)
+        potential = entity.mass * self.g * entity.y
+
+        return kinetic + potential

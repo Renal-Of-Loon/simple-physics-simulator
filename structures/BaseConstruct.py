@@ -1,19 +1,7 @@
 import numpy as np
 from typing import Sequence, Union
 
-
-def cart2pol(coords):
-    x, y = coords
-    rho = np.sqrt(x**2 + y**2)
-    phi = np.arctan2(y, x)
-    return rho, phi
-
-
-def pol2cart(coords):
-    rho, phi = coords
-    x = rho * np.cos(phi)
-    y = rho * np.sin(phi)
-    return x, y
+from util.Maths import cart2pol, pol2cart
 
 
 class BaseConstruct:
