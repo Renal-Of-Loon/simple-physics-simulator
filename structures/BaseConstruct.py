@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import constants
 from typing import Sequence, Union
 
 
@@ -33,10 +32,9 @@ class BaseConstruct:
         # Set basic position, velocity
         self._position = np.array(position)
         self._velocity = np.array(velocity)
-
         self._radial_velocity = cart2pol(self._velocity)
 
-        self._gravity_acceleration = np.array((0, -0.1 * constants.g))  # m/s^2
+        self.previous_position = None
 
         self.parent = parent
         self.children = []
@@ -121,11 +119,3 @@ class BaseConstruct:
         # np.sqrt((v * v).sum(axis=1)) but safer
         # Consider changing to this if needed
         return np.sqrt((self.velocity * self.velocity).sum(axis=0))
-
-    @property
-    def g(self):
-        return self._gravity_acceleration
-
-    @g.setter
-    def g(self, value) -> None:
-        self._gravity_acceleration = value

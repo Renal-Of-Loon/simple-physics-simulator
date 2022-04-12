@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import combinations
+from scipy import constants
 
 from util.Overlaps import is_radial_overlap
 
@@ -10,6 +11,15 @@ class PhysicsController:
     """
     def __init__(self, physics_type: str):
         self.physics = physics_type
+        self._gravity_acceleration = np.array((0, -0.1 * constants.g))  # m/s^2
+
+    @property
+    def g(self):
+        return self._gravity_acceleration
+
+    @g.setter
+    def g(self, value) -> None:
+        self._gravity_acceleration = value
 
     def increment_construct(self, construct):
 
@@ -31,7 +41,7 @@ class PhysicsController:
                 self.handle_particle_collisions(particles[i], particles[j])
 
     def handle_particle_collisions(self, particle1, particle2):
-        # for shorter equation writting
+        # for shorter equation writing
         x1 = particle1.position
         x2 = particle2.position
         v1 = particle1.velocity
@@ -85,7 +95,7 @@ class PhysicsController:
         if self.physics == 'SimpleMechanics':
             initial_position = entity.position
             # New position = velocity * time interval
-            entity.position += entity.velocity * dt + 0.5 * entity.g * dt ** 2
+            entity.position += entity.velocity * dt + 0.5 * self.g * dt ** 2
 
             # print(self.velocity, dt)
             # print(f"After velocity move: {self.position}")
