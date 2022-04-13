@@ -42,17 +42,27 @@ class PhysicsController:
 
             self.iterate_position(p, dt)
 
-        self.handle_possible_collisions(construct.particles)
+        # After each child has been "moved forward in time" check to see if we got a collision
+        # This detect also calls collision handler, function name unclear I guess
+        self.detect_collisions(construct.particles)
+
         return construct
 
-    def handle_possible_collisions(self, particles: list):
+    def handle_particle_collisions(self, particle1, particle2):
+        if self.collision_handler == 'AfterStep':
+            self.perform_deflection(particle1, particle2)
+
+        if self.collision_handler == 'BetweenStep':
+            print('Not yet implementing, no collision handled.')
+
+    def detect_collisions(self, particles: list):
         if self.collision_detection == 'PairWise':
             # Very slow and inefficient way of finding particle overlaps
             particle_pairs = combinations(range(len(particles)), 2)
 
             for i, j in particle_pairs:
                 if is_radial_overlap(particles[i], particles[j]):
-                    self.perform_deflection(particles[i], particles[j])
+                    self.handle_particle_collisions(particles[i], particles[j])
 
     def perform_deflection(self, particle1, particle2):
         # for shorter equation writing

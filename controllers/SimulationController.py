@@ -66,7 +66,7 @@ class SimulationController:
             self.physics.iterate_position(p, dt)
             self.circles[i].center = p.position
 
-        self.physics.handle_possible_collisions(self.particles)
+        self.physics.detect_collisions(self.particles)
         return self.circles
 
     def animate(self, i):
