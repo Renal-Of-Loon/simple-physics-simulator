@@ -70,6 +70,27 @@ class PhysicsController:
 
             # Now move them *out* of each other
             """
+            com = (1 / (m1 + m2)) * (m1 * x1 + m2 * x2)
+
+            move_magnitude = magnitude(particle1.radius - magnitude(x1 - com))
+            #move_magnitude += move_magnitude * 0.1
+            #print('vel: ', particle1.velocity, particle2.velocity)
+            #print('pos: ', x1, x2)
+            #print('com', com)
+            #print('movement: ', move_magnitude)
+
+            particle1.position += np.sign(particle1.velocity) * move_magnitude
+            move_magnitude = magnitude(particle2.radius - magnitude(x2 - com))
+            #move_magnitude += move_magnitude * 0.1
+            particle2.position += np.sign(particle2.velocity) * move_magnitude
+            #print(particle1.position, particle2.position)
+            #print()
+            """
+
+
+            #particle1 = self.iterate_position(particle1, delta_time)
+            #particle2 = self.iterate_position(particle2, delta_time)
+            """
             center = np.mean([particle1.position, particle2.position], axis=0)
 
             if particle1.x <= particle2.x:
