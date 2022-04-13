@@ -13,7 +13,7 @@ class BaseParticle(BaseConstruct):
     Class representing the base of any particle
     """
 
-    def __init__(self, position, velocity, radius=0.01, mass=1, styles=None):
+    def __init__(self, position, velocity, radius=0.01, mass=1, parent=None, styles=None):
         """
         Init for BaseParticle
         :param x: relative position in x (meters)
@@ -25,7 +25,7 @@ class BaseParticle(BaseConstruct):
         """
 
         # Init position and styles
-        super().__init__(position, velocity, None, styles)
+        super().__init__(position, velocity, parent, styles)
 
         # Set basic position, velocity, and radius values
         self._radius = radius

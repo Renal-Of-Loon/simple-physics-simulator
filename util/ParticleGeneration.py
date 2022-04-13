@@ -44,7 +44,7 @@ def generate_particles_in_box(number_particles: int, parent, radius: Union[float
             # Convert to cartesian
             vx, vy = vr * np.array([np.cos(vphi), np.sin(vphi)])
 
-            particle = BaseParticle((x, y), (vx, vy), rad, mass=rad)
+            particle = BaseParticle((x, y), (vx, vy), rad, mass=rad, parent=parent)
             # print(particle.position)
 
             for child in parent.particles:

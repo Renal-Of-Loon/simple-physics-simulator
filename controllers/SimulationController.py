@@ -55,7 +55,9 @@ class SimulationController:
     def advance_animation(self, dt):
         """Advance the animation by dt, returning the updated Circles list."""
 
-        #self.physics.increment_construct(self.world)
+        #self.physics.increment_construct(self.world, dt)
+        ##Loop over everything and assign to old self.circles
+        #self.draw_world()
 
         for i, p in enumerate(self.particles):
             #if i == 0:
