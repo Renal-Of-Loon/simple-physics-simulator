@@ -22,7 +22,7 @@ class BaseConstruct:
         self._velocity = np.array(velocity)
         self._radial_velocity = cart2pol(self._velocity)
 
-        self.previous_position = None
+        self.previous_position = np.copy(self._position)
 
         self.parent = parent
         self.children = []

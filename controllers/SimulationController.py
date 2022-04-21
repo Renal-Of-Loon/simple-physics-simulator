@@ -11,7 +11,7 @@ from controllers.PhysicsController import PhysicsController
 
 
 class SimulationController:
-    def __init__(self, physics_type: str) -> None:
+    def __init__(self, physics_type: str, collision_handler: str) -> None:
         """
         Initialize the controller a square world of sides=world_size
         :param physics_type: String describing the physics to work with
@@ -26,7 +26,7 @@ class SimulationController:
         # Set an epsilon to ensure non-zero but almost 0 in some cases
         self.epsilon = sys.float_info.epsilon
 
-        self.physics = PhysicsController(physics_type)
+        self.physics = PhysicsController(physics_type, collision_handler=collision_handler)
 
     def generate_world(self, world):
         self.world = world
@@ -80,7 +80,8 @@ class SimulationController:
         for s in ['top', 'bottom', 'left', 'right']:
             self.ax.spines[s].set_linewidth(2)
         self.ax.set_aspect('equal', 'box')
-        self.ax.set_xlim(0, 1)
+
+        self.ax.set_xlim(self.world.position[0] - self.world.hlx, self.world.position[1] + self.world.hlx)
         self.ax.set_ylim(0, 1)
         self.ax.xaxis.set_ticks([])
         self.ax.yaxis.set_ticks([])

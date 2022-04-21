@@ -10,11 +10,15 @@ class PhysicsController:
     """
     Controller class to deal with physics interactions
     """
-    def __init__(self, physics_type: str, collision_detection: str = 'PairWise', collision_handler: str = 'AfterStep'):
+    def __init__(self, physics_type: str, collision_detection: str = 'PairWise',
+                 collision_handler: str = 'DiscreteDetection'):
         self.physics_type = physics_type
         self.collision_detection = collision_detection
         self.collision_handler = collision_handler
         self._gravity_acceleration = np.array((0, -0.1 * constants.g))  # m/s^2
+
+        # Set epsilon for ensuring non-zero values in some cases
+        self.epsilon = np.finfo(float).eps
 
     @property
     def g(self):
@@ -49,13 +53,23 @@ class PhysicsController:
         return construct
 
     def handle_particle_collisions(self, particle1, particle2):
-        if self.collision_handler == 'AfterStep':
+        if self.collision_handler == 'DiscreteDetection':
             self.perform_deflection(particle1, particle2)
 
-        if self.collision_handler == 'BetweenStep':
+        if self.collision_handler == 'ContinuousDetection':
             print('Not yet implementing, no collision handled.')
+            self.perform_deflection(particle1, particle2)
+            # Use binary search to trace back until we get within a given precision of two particles
+            # just entering in contact.
+            # Is finding time required to be equidistant to COM valid?
 
     def detect_collisions(self, particles: list):
+        # Sweep and prune
+        # Uniform grid partition
+        # K-D Tree space partition
+        # Object Partition
+        #   Bounding Volume Hierarchies
+
         if self.collision_detection == 'PairWise':
             # Very slow and inefficient way of finding particle overlaps
             particle_pairs = combinations(range(len(particles)), 2)
@@ -84,40 +98,84 @@ class PhysicsController:
 
             return particle1, particle2
 
-    def handle_parent_collision(self, entity):
-        if self.physics_type == 'SimpleMechanics':
+    def parent_collision_regression(self, entity, pos_index, dt, wall_position):
+        # God I hate how this is implemented, please don't leave it like this
+        # TODO: fix this garbage
+
+        # We want to use before and after position, make an equation governing time vs position
+        # basically time = slope * position + intercept
+        # Here our slope(s) will be time vs x and time vs y
+        # We use dt as our "rise" (from rise over run) since it's already the time interval
+        slope = (dt - 0) / (entity.position[pos_index] - entity.previous_position[pos_index])
+        intercept = dt - slope * entity.position[pos_index]
+
+        if np.abs(entity.previous_position[pos_index] - (wall_position + entity.radius)) < np.abs(entity.previous_position[pos_index] - (wall_position - entity.radius)):
+            wall_intercept = wall_position + entity.radius
+        else:
+            wall_intercept = wall_position - entity.radius
+        time_to_wall = slope * wall_intercept + intercept
+
+        # With time_to_wall we can determine coordinates at impact
+        position_impact = entity.previous_position[pos_index] + entity.velocity[pos_index] * time_to_wall
+
+        # Now we flip the velocity
+        # Weird way of determining in which axis we hit wall
+        # If the difference between wall and calculated position is smaller than a small value (i.e they are almost
+        # identical within rounding issues), velocity needs to flip
+        #wall_sign_flip = np.where(np.abs(position_impact - wall_position) < 0.001, -1, 0)
+        entity.velocity[pos_index] = -1 * entity.velocity[pos_index] #wall_sign_flip * entity.velocity
+
+        # And now we let the particle "finish" it's run
+        entity.position[pos_index] = position_impact + entity.velocity[pos_index] * (dt - time_to_wall)
+
+    def handle_parent_collision(self, entity, dt):
+        if self.collision_handler == 'ContinuousDetection':
             parent = entity.parent
             parent_xlim = np.array([parent.x - parent.hlx, parent.x + parent.hlx])
             parent_ylim = np.array([parent.y - parent.hly, parent.y + parent.hly])
             # For now let's deal with wall physics here
             # Walls are assumed to be at 0m and 1m in both x and y
-            if entity.x - entity.radius < 0:
+            """
+            if entity.x - entity.radius <= parent_xlim[0]:
                 # If we passed the x = 0 wall, bounce back
                 entity.x = entity.radius
                 entity.vx = -1. * entity.vx
-            if entity.x + entity.radius > 1:
+            if entity.x + entity.radius >= parent_xlim[1]:
                 # If we passed the x = 1 wall...
                 entity.x = 1. - entity.radius
                 entity.vx = -1. * entity.vx
 
-            if entity.y - entity.radius <= 0:
+            if entity.y - entity.radius <= parent_ylim[0]:
                 entity.y = entity.radius
                 entity.vy = -1. * entity.vy
-            if entity.y + entity.radius >= 1:
+            if entity.y + entity.radius >= parent_ylim[1]:
                 entity.y = 1. - entity.radius
                 entity.vy = -1. * entity.vy
+            """
+
+            if entity.x - entity.radius <= parent_xlim[0]:
+                # If we passed the x = 0 wall, bounce back
+                self.parent_collision_regression(entity, 0, dt, 0)
+            if entity.x + entity.radius >= parent_xlim[1]:
+                # If we passed the x = 1 wall...
+                self.parent_collision_regression(entity, 0, dt, 1)
+
+            if entity.y - entity.radius <= parent_ylim[0]:
+                self.parent_collision_regression(entity, 1, dt, 0)
+            if entity.y + entity.radius >= parent_ylim[1]:
+                self.parent_collision_regression(entity, 1, dt, 1)
 
         return entity
 
     def iterate_position(self, entity, dt):
         if self.physics_type == 'SimpleMechanics':
-            entity.previous_position = entity.position
-            entity.position += entity.velocity * dt + 0.5 * self.g * dt ** 2
+            entity.previous_position = np.copy(entity.position)
+            entity.position += entity.velocity * dt# + 0.5 * self.g * dt ** 2
 
             # print(self.velocity, dt)
             # print(f"After velocity move: {self.position}")
 
-            self.handle_parent_collision(entity)
+            self.handle_parent_collision(entity, dt)
 
             # We adjust velocity after boundary displacement to avoid increasing energy in the system magically
             # If not we are making the "first" increment after impact bigger than before impact
