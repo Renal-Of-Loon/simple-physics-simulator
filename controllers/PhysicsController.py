@@ -129,13 +129,26 @@ class PhysicsController:
         entity.position[pos_index] = position_impact + entity.velocity[pos_index] * (dt - time_to_wall)
 
     def handle_parent_collision(self, entity, dt):
+        parent = entity.parent
+        parent_xlim = np.array([parent.x - parent.hlx, parent.x + parent.hlx])
+        parent_ylim = np.array([parent.y - parent.hly, parent.y + parent.hly])
+
         if self.collision_handler == 'ContinuousDetection':
-            parent = entity.parent
-            parent_xlim = np.array([parent.x - parent.hlx, parent.x + parent.hlx])
-            parent_ylim = np.array([parent.y - parent.hly, parent.y + parent.hly])
             # For now let's deal with wall physics here
-            # Walls are assumed to be at 0m and 1m in both x and y
-            """
+            if entity.x - entity.radius <= parent_xlim[0]:
+                # If we passed the x = 0 wall, bounce back
+                self.parent_collision_regression(entity, 0, dt, 0)
+            if entity.x + entity.radius >= parent_xlim[1]:
+                # If we passed the x = 1 wall...
+                self.parent_collision_regression(entity, 0, dt, 1)
+
+            if entity.y - entity.radius <= parent_ylim[0]:
+                self.parent_collision_regression(entity, 1, dt, 0)
+            if entity.y + entity.radius >= parent_ylim[1]:
+                self.parent_collision_regression(entity, 1, dt, 1)
+
+        if self.collision_handler == 'DiscreteDetection':
+            # For now let's deal with wall physics here
             if entity.x - entity.radius <= parent_xlim[0]:
                 # If we passed the x = 0 wall, bounce back
                 entity.x = entity.radius
@@ -151,20 +164,6 @@ class PhysicsController:
             if entity.y + entity.radius >= parent_ylim[1]:
                 entity.y = 1. - entity.radius
                 entity.vy = -1. * entity.vy
-            """
-
-            if entity.x - entity.radius <= parent_xlim[0]:
-                # If we passed the x = 0 wall, bounce back
-                self.parent_collision_regression(entity, 0, dt, 0)
-            if entity.x + entity.radius >= parent_xlim[1]:
-                # If we passed the x = 1 wall...
-                self.parent_collision_regression(entity, 0, dt, 1)
-
-            if entity.y - entity.radius <= parent_ylim[0]:
-                self.parent_collision_regression(entity, 1, dt, 0)
-            if entity.y + entity.radius >= parent_ylim[1]:
-                self.parent_collision_regression(entity, 1, dt, 1)
-
         return entity
 
     def iterate_position(self, entity, dt):
@@ -186,7 +185,7 @@ class PhysicsController:
 
             entity.energy = self.compute_energy(entity)
 
-            return entity
+        return entity
 
     def compute_energy(self, entity):
         # E_k = 1/2 * m * v^2
